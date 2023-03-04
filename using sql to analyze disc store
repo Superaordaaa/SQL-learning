@@ -1,0 +1,65 @@
+-- no 1 
+
+select *
+	from rakamin_customer
+	where (email like '%yahoo.com' or email like '%roketmail.com')
+		   and (tanggal_registrasi between '2012-01-01' and '2012-03-31')
+		   and (bulan_lahir ilike 'januari' or bulan_lahir ilike 'februari' or bulan_lahir ilike 'maret') ;
+		   
+-- no 2 
+		   
+select id_order , id_pelanggan,  harga, 
+       (harga + (harga * 0.1)) as harga_setelah_ppn,
+	case when (harga + (harga * 0.1)) < 20000 then 'low spending'
+	     when (harga + (harga * 0.1)) > 50000 then 'high spending'
+		 else 'meduim spending'
+	end as spending_bucket
+from rakamin_order
+group by 1,2,3,5
+order by 4 desc;
+
+-- no 3
+
+select distinct ro.id_merchant, rm.nama_merchant, sum(ro.harga) as pendapatan_sebelum_ppn, count(ro.harga) as jumlah_transaksi
+	from rakamin_order as ro
+left join rakamin_merchant as rm ON ro.id_merchant = rm.id_merchant 
+group by 1,2
+order by 3 desc;
+
+-- no 4
+
+select distinct metode_bayar, count(metode_bayar) as jumlah_transaksi
+from rakamin_order
+group by 1
+having count(metode_bayar) > 10
+order by count(metode_bayar) desc;
+
+-- no 5 
+
+select max(populasi) jumlah_populasi_terbesar, min(populasi) jumlah_populasi_terkecil
+from (select distinct kota , count(kota) as populasi
+		from rakamin_customer_address
+		group by 1
+		) as tes;
+		
+-- no 6
+
+select rm.nama_merchant, ro.metode_bayar, count(metode_bayar) as jumlah_transaksi
+from rakamin_order ro
+left join rakamin_merchant as rm ON ro.id_merchant = rm.id_merchant 
+group by 1,2
+order by 1 ;
+
+-- no 7
+
+with itulah as
+	(
+		select distinct id_pelanggan as pelanggan, sum(kuantitas) total_belanja
+		from rakamin_order
+		group by 1
+		having sum(kuantitas)>5
+		order by 1
+	)
+select pelanggan, total_belanja, nama, email
+from itulah i
+left join rakamin_customer rc on  i.pelanggan = rc.id_pelanggan;
